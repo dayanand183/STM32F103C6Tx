@@ -1,0 +1,7 @@
+21:47:25 **** Incremental Build of configuration Debug for project switch ****
+make -j8 all 
+arm-none-eabi-size   switch.elf 
+   text	   data	    bss	    dec	    hex	filename
+   4676	     20	   1572	   6268	   187c	switch.elf
+Finished building: default.size.stdout
+ 
