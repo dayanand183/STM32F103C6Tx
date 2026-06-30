@@ -105,9 +105,9 @@ int main(void)
 	  if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == 1)
 	  {
 		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, RESET);
-		  HAL_Delay(500);
+		  HAL_Delay(100);
 		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_2, SET);
-		  HAL_Delay(500);
+		  HAL_Delay(100);
 	  }
 
 	  else
