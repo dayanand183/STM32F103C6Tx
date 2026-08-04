@@ -99,14 +99,14 @@ int main(void)
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
-//  TIM1->CR1 &= 0xFFFE;
-//  TIM1->PSC = 16-1;
-//  TIM1->ARR = 20000-1;
-//  TIM1->CCR1 = 1500; // 17999;
-//  TIM1->CR1 |= 0x1;
-//  TIM1->BDTR |= TIM_BDTR_MOE;
-
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+
+  TIM1->CR1 &= 0xFFFE;			// Turn OFF the timer
+  TIM1->PSC = 16-1;				// 16Mhz/16 = 1 Prescalar
+  TIM1->ARR = 20000-1;			// (20ms*1Mhz) - 1 = ARR;
+  TIM1->CCR1 = 1000; 			// CCR = (Dutycycle * ARR);
+  TIM1->CR1 |= 0x1;				// Turn ON the timer
+//  TIM1->BDTR |= TIM_BDTR_MOE;
 
   /* USER CODE END 2 */
 
@@ -231,13 +231,14 @@ static void MX_TIM1_Init(void)
 
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_IC_InitTypeDef sConfigIC = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
 
   /* USER CODE BEGIN TIM1_Init 1 */
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 0;
+  htim1.Init.Prescaler = 8000;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim1.Init.Period = 65535;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -252,7 +253,7 @@ static void MX_TIM1_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_TIM_IC_Init(&htim1) != HAL_OK)
+  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
   {
     Error_Handler();
   }
@@ -262,17 +263,32 @@ static void MX_TIM1_Init(void)
   {
     Error_Handler();
   }
-  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
-  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
-  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
-  sConfigIC.ICFilter = 0;
-  if (HAL_TIM_IC_ConfigChannel(&htim1, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK)
   {
     Error_Handler();
   }
   /* USER CODE BEGIN TIM1_Init 2 */
 
   /* USER CODE END TIM1_Init 2 */
+  HAL_TIM_MspPostInit(&htim1);
 
 }
 
@@ -285,41 +301,28 @@ static void MX_GPIO_Init(void)
 {
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
 }
 
 /* USER CODE BEGIN 4 */
 
-/*static void set_servo(uint16_t val1)
+static void set_servo(uint16_t val1)
 {
-    uint16_t pulse;
+//    uint16_t pulse;
+    uint32_t dummy_var;
 
-    pulse = 1000 + ((val1 * 1000) / 4095);
-
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pulse);
-
-	/*uint32_t dummy_var;
-	dummy_var = (4395.6 * val1) / 100000;
-	dummy_var = (5555.56 * dummy_var)/1000;
-	dummy_var = 19000 - dummy_var;
+	dummy_var = (4395.6*val1)/100000;
+	dummy_var = (5555.56*dummy_var)/1000;
+	dummy_var = 19000-dummy_var;
 
 	TIM1->CR1 &= 0xFFFE;
 	TIM1->CCR1 = dummy_var;
 	TIM1->CR1 |= 0x1;
-}*/
-
-static void set_servo(uint16_t val1)
-{
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000);
-    HAL_Delay(2000);
-
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1500);
-    HAL_Delay(2000);
-
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 2000);
-    HAL_Delay(2000);
 }
+
+
 
 /* USER CODE END 4 */
 
