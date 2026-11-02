@@ -101,7 +101,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11);
-	  HAL_Delay(200);	/* Earlier the Delay is 200 now the Delay is increased to 500 */
+	  HAL_Delay(200);	/* */
   }
   /* USER CODE END 3 */
 }
